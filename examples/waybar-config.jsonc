@@ -6,6 +6,5 @@
     "format": "{text}",
     "interval": 300,
     "tooltip": true,
-    "on-click": "${TERMINAL:-kitty} -e claude"
   }
 }
