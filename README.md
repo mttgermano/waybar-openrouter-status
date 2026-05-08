@@ -1,11 +1,11 @@
-# waybar-claude-code
+# waybar-openrouter-code
 
 [![Go Version](https://img.shields.io/badge/go-1.21+-00ADD8.svg?logo=go)](https://go.dev/dl/)
 [![Zero Deps](https://img.shields.io/badge/deps-zero-success)]()
 ![Nerd Fonts](https://img.shields.io/badge/nerd%20font-required-orange)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A lightweight Waybar custom module written in Go that displays Claude Code usage metrics to your bar using [ccusage](https://github.com/ryoppippi/ccusage).
+A lightweight Waybar custom module written in Go that displays Claude Code usage metrics (with any Openrouter Model) to your bar using [ccusage](https://github.com/ryoppippi/ccusage).
 
 ## Demo
 
@@ -35,33 +35,25 @@ A lightweight Waybar custom module written in Go that displays Claude Code usage
 
 ### Precompiled Binary Installation
 
-Download and install to your Waybar modules directory. Releases follow the pattern `waybar-claude-code-v{version}-linux-{arch}.tar.gz`:
+Download and install to your Waybar modules directory. Releases follow the pattern `waybar-openrouter-code-v{version}-linux-{arch}.tar.gz`:
 
 ```bash
 # Download latest release (replace {version} with actual version, e.g., v1.0.1)
-curl -LO https://github.com/hxreborn/waybar-claude-code/releases/latest/download/waybar-claude-code-v{version}-linux-amd64.tar.gz
-tar -xzf waybar-claude-code-*.tar.gz
-install -Dm755 waybar-claude-code ~/.config/waybar/modules/waybar-claude-code
+curl -LO https://github.com/mttgermano/waybar-openrouter-code/releases/latest/download/waybar-openrouter-code-v{version}-linux-amd64.tar.gz
+tar -xzf waybar-openrouter-code-*.tar.gz
+install -Dm755 waybar-openrouter-code ~/.config/waybar/modules/waybar-openrouter-code
 ```
 
 Verify installation:
 ```bash
-waybar-claude-code --version
-```
-
-### Arch Linux (AUR)
-
-If you use an AUR helper like `yay`:
-
-```bash
-yay -S waybar-claude-code-bin
+waybar-openrouter-code --version
 ```
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/hxreborn/waybar-claude-code.git /tmp/waybar-claude-code
-cd /tmp/waybar-claude-code
+git clone https://github.com/mttgermano/waybar-openrouter-code.git /tmp/waybar-openrouter-code
+cd /tmp/waybar-openrouter-code
 make install
 ```
 
@@ -74,9 +66,9 @@ If this module keeps your workflow smoother, file an issue or star the repo so I
 Add to `~/.config/waybar/config.jsonc`:
 
 ```jsonc
-"custom/claude-code": {
+"custom/oepnrouter-code": {
   "return-type": "json",
-  "exec": "~/.config/waybar/modules/waybar-claude-code",
+  "exec": "~/.config/waybar/modules/waybar-openrouter-code",
   "format": "{text}",
   "interval": 300,
   "tooltip": true,
@@ -90,13 +82,13 @@ Add to `~/.config/waybar/config.jsonc`:
 Add to `~/.config/waybar/style.css`:
 
 ```css
-#custom-claude-code {
+#custom-openrouter-code {
   padding: 0 10px;
   margin: 0 2px;
   color: inherit;
 }
 
-#custom-claude-code:hover {
+#custom-openrouter-code:hover {
   color: #ff8c00;
 }
 
@@ -126,11 +118,11 @@ Reset time uses 24-hour format and rounds to the nearest hour if within 2 minute
 
 **Icons show as boxes:** Install a [Nerd Font](https://www.nerdfonts.com/) and configure it in your terminal/Waybar settings
 
-**Module not appearing:** Verify binary is executable: `ls -lh ~/.config/waybar/modules/waybar-claude-code`
+**Module not appearing:** Verify binary is executable: `ls -lh ~/.config/waybar/modules/waybar-openrouter-code`
 
 **No tooltip on hover:** Add `"tooltip": true` to the module config in `~/.config/waybar/config.jsonc`
 
-**Module shows error state:** Run binary manually to see error output: `~/.config/waybar/modules/waybar-claude-code`
+**Module shows error state:** Run binary manually to see error output: `~/.config/waybar/modules/waybar-openrouter-code`
 
 ## License
 
