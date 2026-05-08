@@ -51,7 +51,7 @@ func main() {
 }
 
 func fetchTooltip(ctx context.Context) (string, error) {
-	data, err := ccusage.GetBlocks(ctx)
+	data, err := ccusage.GetData(ctx)
 	if err != nil {
 		return "", err
 	}

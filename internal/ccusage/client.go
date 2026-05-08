@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+ 	"time"
 )
 
 type TokenCounts struct {
@@ -14,32 +15,16 @@ type TokenCounts struct {
 	CacheReadInputTokens     int `json:"cacheReadInputTokens"`
 }
 
-type BurnRate struct {
-	TokensPerMinute             float64 `json:"tokensPerMinute"`
-	TokensPerMinuteForIndicator float64 `json:"tokensPerMinuteForIndicator"`
-	CostPerHour                 float64 `json:"costPerHour"`
-}
-
-type Projection struct {
-	TotalTokens      int     `json:"totalTokens"`
-	TotalCost        float64 `json:"totalCost"`
-	RemainingMinutes int     `json:"remainingMinutes"`
-}
 
 type Block struct {
 	ID            string      `json:"id"`
-	StartTime     string      `json:"startTime"`
-	EndTime       string      `json:"endTime"`
-	ActualEndTime string      `json:"actualEndTime"`
+ 	EndTime       string      `json:"endTime"`
 	IsActive      bool        `json:"isActive"`
-	IsGap         bool        `json:"isGap"`
 	Entries       int         `json:"entries"`
 	TokenCounts   TokenCounts `json:"tokenCounts"`
 	TotalTokens   int         `json:"totalTokens"`
 	CostUSD       float64     `json:"costUSD"`
 	Models        []string    `json:"models"`
-	BurnRate      BurnRate    `json:"burnRate"`
-	Projection    Projection  `json:"projection"`
 }
 
 type BlocksResponse struct {
@@ -47,23 +32,132 @@ type BlocksResponse struct {
 }
 
 type BlocksData struct {
-	Entries                  int
-	TotalTokens              int
-	InputTokens              int
-	OutputTokens             int
-	CacheCreationInputTokens int
-	CacheReadInputTokens     int
-	CostUSD                  float64
-	RemainingMinutes         int
-	CostPerHour              float64
+	Entries                  	int
+	TotalTokens              	int
+	BlockTotalTokens			int
+	InputTokens              	int
+	OutputTokens             	int
+	CostUSD                  	float64
+	//CostPerHour              	float64
+	LastModel                	string
+ 	EndTime       				string
 }
 
-func GetBlocks(ctx context.Context) (*BlocksData, error) {
-	cmd := exec.CommandContext(ctx, "npx", "ccusage@latest", "blocks", "--active", "--json", "--offline")
+type DailyResponse struct {
+	Daily []Daily `json:"daily"`
+}
+
+type Daily struct {
+	TotalTokens 			int `json:"totalTokens"`
+	InputTokens 			int `json:"inputTokens"`
+	OutputTokens 			int `json:"outputTokens"`
+	CacheCreationTokens 	int `json:"cacheCreationTokens"`
+	CacheReadTokens 		int `json:"cacheReadTokens"`
+	Models        			[]string `json:"modelsUsed"`
+}
+
+type DailyData struct {
+	TotalTokens            	int
+	InputTokens				int
+	OutputTokens        	int
+	LastModel				string
+}
+
+type Data struct {
+	BlockInputTokens        int
+	BlockOutputTokens       int
+	BlockTotalTokens        int
+	DailyTotalTokens        int
+	DailyOutputTokens       int
+	DailyInputTokens        int
+	Entries					int
+	LastModel               string
+}
+
+
+func GetData(ctx context.Context) (*Data, error) {
+	block, err := getBlocks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	daily, err := getDaily(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	lastModel := block.LastModel
+	if lastModel == "" {
+		lastModel = daily.LastModel
+	}
+
+	return &Data{
+		BlockTotalTokens:   block.TotalTokens,
+		BlockInputTokens:  	block.InputTokens,
+		BlockOutputTokens: 	block.OutputTokens,
+		LastModel:         	lastModel,
+		DailyInputTokens:  	daily.InputTokens,
+		DailyOutputTokens: 	daily.OutputTokens,
+		DailyTotalTokens:  	daily.TotalTokens,
+		Entries:          	block.Entries,
+	}, nil
+}
+
+func getDaily(ctx context.Context) (*DailyData,error) {
+	cmd := exec.CommandContext(ctx, "npx", "ccusage@latest", "daily", "--active", "--json", "--offline")
 
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("execute ccusage (npx ccusage@latest blocks --active --json --offline): %w", err)
+		return nil, fmt.Errorf("execute ccusage (npx ccusage@latest daily --active --json --offline): %w", err)
+	}
+
+	var response DailyResponse
+	if err := json.Unmarshal(output, &response); err != nil {
+		return nil, fmt.Errorf("parse ccusage json output: %w", err)
+	}
+
+	if len(response.Daily) == 0 {
+		return nil, fmt.Errorf("no active usage daily found in ccusage response")
+	}
+
+	daily := response.Daily[0]
+
+	lastModel := ""
+	if len(daily.Models) > 0 {
+		lastModel = daily.Models[len(daily.Models)-1]
+	}
+
+	return &DailyData{
+		TotalTokens: 	daily.TotalTokens,
+		InputTokens:  	daily.InputTokens + daily.CacheCreationTokens + daily.CacheReadTokens,
+		OutputTokens:   daily.OutputTokens,
+		LastModel:		lastModel,
+	}, nil
+}
+
+func countEntries(blocks BlocksResponse) (int) {
+	now := time.Now().UTC()
+	var sum int
+
+	for _, b := range blocks.Blocks {
+		t, err := time.Parse(time.RFC3339, b.EndTime)
+		if err != nil {
+			continue
+		}
+
+		if now.Sub(t) <= 24*time.Hour && now.After(t) {
+			sum += b.Entries
+		}
+	}
+	return sum
+}
+
+
+func getBlocks(ctx context.Context) (*BlocksData, error) {
+	cmd := exec.CommandContext(ctx, "npx", "ccusage@latest", "blocks", "--json", "--offline")
+
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("execute ccusage (npx ccusage@latest blocks --json --offline): %w", err)
 	}
 
 	var response BlocksResponse
@@ -71,21 +165,31 @@ func GetBlocks(ctx context.Context) (*BlocksData, error) {
 		return nil, fmt.Errorf("parse ccusage json output: %w", err)
 	}
 
+	block := Block{}
 	if len(response.Blocks) == 0 {
-		return nil, fmt.Errorf("no active usage blocks found in ccusage response")
+		block = Block{
+			ID:          "0",
+			Entries:     0,
+			TokenCounts: TokenCounts{},
+			TotalTokens: 0,
+			CostUSD:     0,
+			Models:      []string{},
+		}
+	} else {
+		block = response.Blocks[0]
 	}
 
-	block := response.Blocks[0]
+	lastModel := ""
+	if len(block.Models) > 0 {
+		lastModel = block.Models[len(block.Models)-1]
+	}
 
 	return &BlocksData{
-		Entries:                  block.Entries,
-		TotalTokens:              block.TotalTokens,
-		InputTokens:              block.TokenCounts.InputTokens,
-		OutputTokens:             block.TokenCounts.OutputTokens,
-		CacheCreationInputTokens: block.TokenCounts.CacheCreationInputTokens,
-		CacheReadInputTokens:     block.TokenCounts.CacheReadInputTokens,
-		CostUSD:                  block.CostUSD,
-		RemainingMinutes:         block.Projection.RemainingMinutes,
-		CostPerHour:              block.BurnRate.CostPerHour,
+		Entries:          	countEntries(response),
+		TotalTokens:  		block.TotalTokens,
+		InputTokens:        block.TokenCounts.InputTokens + block.TokenCounts.CacheCreationInputTokens + block.TokenCounts.CacheReadInputTokens,
+		OutputTokens:       block.TokenCounts.OutputTokens,
+		LastModel:          lastModel,
+		EndTime: 			block.EndTime,
 	}, nil
 }
