@@ -80,7 +80,6 @@ Add to `~/.config/waybar/config.jsonc`:
   "format": "{text}",
   "interval": 300,
   "tooltip": true,
-  "on-click": "${TERMINAL:-kitty} -e claude"
 }
 ```
 
@@ -113,10 +112,12 @@ tooltip {
 Hover over the 󰜡 icon to see detailed metrics:
 
 ```
- Active Block (resets in 3h 45m - 18h30)
- Requests: 110
- Tokens: 2.8M (1.5M in / 1.3M out)
- Cost: $1.47 @ $0.38/h
+  OPENROUTER · tencent/hy3-preview-20260421:free 
+ ------------------------------------------------
+  Requests: 3
+ ░░░░░░░░░░ RESETS · 19H 32M
+ TODAY : 14.7M [14.5M  158.4K ]
+ SESSION : 2.1M [2.0M  28.8K ]
 ```
 
 Reset time uses 24-hour format and rounds to the nearest hour if within 2 minutes (e.g., `17:59` → `18h`).
