@@ -1,5 +1,5 @@
 # Binaries
-/waybar-claude-code
+/waybar-openrouter-code
 *.exe
 *.dll
 *.so

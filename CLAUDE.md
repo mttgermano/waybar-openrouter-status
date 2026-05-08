@@ -1,4 +1,4 @@
-# waybar-claude-code
+# waybar-openrouter-code
 
 Waybar module displaying Claude Code usage statistics. Zero external dependencies, single binary output.
 
@@ -28,13 +28,13 @@ Protocol rules:
 
 ## Project Structure
 
-Core Go entrypoint lives in `cmd/waybar-claude-code`, while reusable logic is grouped under:
+Core Go entrypoint lives in `cmd/waybar-openrouter-code`, while reusable logic is grouped under:
 - `internal/ccusage` - Claude Code usage API client (API calls, caching, timeout handling)
 - `internal/config` - Environment variable parsing
 - `internal/format` - Tooltip rendering helpers with business rules
 - `pkg/waybar` - Shared Waybar JSON protocol (reusable across modules)
 
-Assets for docs and demos live in `assets/`, ready-to-copy Waybar + CSS samples in `examples/`. Keep binaries out of Git; `waybar-claude-code` at root is compiled output only.
+Assets for docs and demos live in `assets/`, ready-to-copy Waybar + CSS samples in `examples/`. Keep binaries out of Git; `waybar-openrouter-code` at root is compiled output only.
 
 ## Development Workflow
 
@@ -60,7 +60,7 @@ Run `make fmt`, `make lint`, `make test` before any PR.
 Personal system (live testing):
 - `~/.config/waybar/modules/custom-claude-code.jsonc` - module config
 - `~/.config/waybar/user-style.css` - CSS styles
-- `~/.config/waybar/modules/waybar-claude-code` - compiled binary
+- `~/.config/waybar/modules/waybar-openrouter-code` - compiled binary
 
 Repository examples (update after testing):
 - `examples/waybar-config.jsonc` - reference module config
@@ -98,7 +98,7 @@ Test workflow:
 {
   "custom/claude-code": {
     "return-type": "json",
-    "exec": "~/.config/waybar/modules/waybar-claude-code",
+    "exec": "~/.config/waybar/modules/waybar-openrouter-code",
     "format": "{text}",
     "interval": 300,
     "restart-interval": 30,
@@ -171,14 +171,14 @@ PRs should describe user-facing impact, list test commands run, link tracked iss
 Uses GoReleaser (`.goreleaser.yml`) to build and package releases. On tag push (`v*.*.*`):
 1. CI runs tests and linter
 2. GoReleaser builds linux/amd64 and linux/arm64 binaries
-3. Packages as `waybar-claude-code-v{version}-linux-{arch}.tar.gz` with LICENSE bundled
+3. Packages as `waybar-openrouter-code-v{version}-linux-{arch}.tar.gz` with LICENSE bundled
 4. Generates single `checksums.txt`
 5. Creates GitHub release with artifacts
 
 **Release artifacts structure:**
 ```
-waybar-claude-code-v{version}-linux-{arch}.tar.gz
-├── waybar-claude-code (binary)
+waybar-openrouter-code-v{version}-linux-{arch}.tar.gz
+├── waybar-openrouter-code (binary)
 ├── LICENSE
 └── README.md
 ```
@@ -187,10 +187,10 @@ waybar-claude-code-v{version}-linux-{arch}.tar.gz
 1. Refresh pkg.go.dev docs:
    ```bash
    GO111MODULE=on GOPROXY=https://proxy.golang.org go list -mod=mod \
-     github.com/hxreborn/waybar-claude-code
+     github.com/hxreborn/waybar-openrouter-code
    ```
-2. Verify https://pkg.go.dev/github.com/hxreborn/waybar-claude-code shows latest tag
-3. Verify `waybar-claude-code --version` outputs correct version
+2. Verify https://pkg.go.dev/github.com/hxreborn/waybar-openrouter-code shows latest tag
+3. Verify `waybar-openrouter-code --version` outputs correct version
 4. AUR package auto-updates via `.github/workflows/aur-publish.yml` (no manual action needed)
 
 **Changelog:**
@@ -201,19 +201,19 @@ GoReleaser generates changelog from conventional commits (excludes `docs:`, `tes
 
 **Version check:**
 ```bash
-waybar-claude-code --version
+waybar-openrouter-code --version
 # Expected: vX.Y.Z (matches git tag)
 ```
 
 **Output validation:**
 ```bash
-./waybar-claude-code | jq .
+./waybar-openrouter-code | jq .
 # Expected: {"text":"...", "tooltip":"...", "class":"..."}
 ```
 
 **Live test in Waybar:**
 ```bash
-~/.config/waybar/modules/waybar-claude-code
+~/.config/waybar/modules/waybar-openrouter-code
 # Should output single-line JSON, exit code 0
 ```
 
@@ -226,20 +226,20 @@ systemctl --user restart hyde-Hyprland-bar.service
 
 **Performance check:**
 ```bash
-time ./waybar-claude-code
+time ./waybar-openrouter-code
 # Expected: ~50ms including API call
 ```
 
 ## Troubleshooting
 
 **Module not appearing in Waybar:**
-- Verify binary exists: `ls -lh ~/.config/waybar/modules/waybar-claude-code`
-- Check execution: `~/.config/waybar/modules/waybar-claude-code` should output JSON
+- Verify binary exists: `ls -lh ~/.config/waybar/modules/waybar-openrouter-code`
+- Check execution: `~/.config/waybar/modules/waybar-openrouter-code` should output JSON
 - Confirm Waybar config loaded: `systemctl --user status hyde-Hyprland-bar.service`
 
 **JSON parse errors in Waybar logs:**
-- Run `./waybar-claude-code | jq .` to validate JSON syntax
-- Check stderr for Go panics: `./waybar-claude-code 2>&1`
+- Run `./waybar-openrouter-code | jq .` to validate JSON syntax
+- Check stderr for Go panics: `./waybar-openrouter-code 2>&1`
 
 **Module shows error state:**
 - API timeout: default 8s, check network latency

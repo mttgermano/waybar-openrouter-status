@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hxreborn/waybar-claude-code/internal/ccusage"
+	"github.com/mttgermano/waybar-openrouter-code/internal/ccusage"
 )
 
 func FormatNumber(n int) string {
@@ -36,32 +36,21 @@ func FormatDuration(minutes int) string {
 	}
 }
 
-func formatResetTime(t time.Time) string {
-	m := t.Minute()
-
-	if m >= 58 {
-		t = t.Add(time.Duration(60-m) * time.Minute)
-		return t.Format("15h")
-	}
-	if m <= 2 {
-		t = t.Add(-time.Duration(m) * time.Minute)
-		return t.Format("15h")
-	}
-
-	return t.Format("15h04")
-}
-
 func barString(pct int, width int) string {
-	if pct < 0 { pct = 0 }
-	if pct > 100 { pct = 100 }
+	if pct < 0 {
+		pct = 0
+	}
+	if pct > 100 {
+		pct = 100
+	}
 
 	filled := (pct * width) / 100
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", width-filled)
 
 	color := "#619e6e" // Green hex
-    if pct >= 80 {
-        color = "#913326" // Red hex
-    }
+	if pct >= 80 {
+		color = "#913326" // Red hex
+	}
 
 	return "<span foreground='" + color + "'>" + bar + "</span>"
 }
@@ -74,7 +63,7 @@ func FormatTooltip(data *ccusage.Data) string {
 	var sb strings.Builder
 
 	// HEADER ------------------------------------------------------
-	headerString := fmt.Sprintf("OPENROUTER · <span foreground='#bd93f9'>" + "%s" + "</span>" , data.LastModel)
+	headerString := fmt.Sprintf("OPENROUTER · <span foreground='#bd93f9'>"+"%s"+"</span>", data.LastModel)
 	headerConst := len("<span foreground='#bd93f9'></span>")
 
 	tabSize := headerConst
@@ -82,10 +71,10 @@ func FormatTooltip(data *ccusage.Data) string {
 	if len(headerString) > 2*headerConst {
 		tabSize = 1
 		dashSize = len(headerString) - headerConst + 2
-	} else if len(headerString)  == 2*headerConst {
+	} else if len(headerString) == 2*headerConst {
 		tabSize = 1
 	} else {
-		tabSize = (2*headerConst - len(headerString))/2
+		tabSize = (2*headerConst - len(headerString)) / 2
 	}
 	if (2*tabSize + len(headerString) - headerConst) <= dashSize {
 		dashSize += 1
@@ -94,10 +83,9 @@ func FormatTooltip(data *ccusage.Data) string {
 
 	prefixString := calculatePrefix(tabSize)
 	fmt.Fprintf(&sb, "<b>%s</b>\n",
-		prefixString + headerString)
+		prefixString+headerString)
 
 	fmt.Fprintf(&sb, strings.Repeat("-", dashSize)+"\n")
-
 
 	// requests ----------------------------------------------------
 	fmt.Fprintf(&sb, "<b>\uf1d8 Requests:</b> %d\n",
@@ -106,13 +94,13 @@ func FormatTooltip(data *ccusage.Data) string {
 	pct := data.Entries * 100 / 1000
 	bar := barString(pct, 10)
 
-    now := time.Now()
+	now := time.Now()
 	tomorrow := time.Date(
-	    now.Year(),
-	    now.Month(),
-	    now.Day()+1,
-	    0, 0, 0, 0,
-	    now.Location(),
+		now.Year(),
+		now.Month(),
+		now.Day()+1,
+		0, 0, 0, 0,
+		now.Location(),
 	)
 	time_delta := int(tomorrow.Sub(now).Minutes())
 	resetStr := strings.ToUpper(FormatDuration(time_delta))

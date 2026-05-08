@@ -2,8 +2,8 @@
 .DEFAULT_GOAL := build
 
 GO ?= go
-BINARY ?= waybar-claude-code
-CMD_DIR := ./cmd/waybar-claude-code
+BINARY ?= waybar-openrouter-code
+CMD_DIR := ./cmd/waybar-openrouter-code
 INSTALL_DIR ?= $(HOME)/.config/waybar/modules
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 GOFLAGS ?= -trimpath

@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/hxreborn/waybar-claude-code/internal/ccusage"
-	"github.com/hxreborn/waybar-claude-code/internal/format"
-	"github.com/hxreborn/waybar-claude-code/pkg/waybar"
+	"github.com/mttgermano/waybar-openrouter-code/internal/ccusage"
+	"github.com/mttgermano/waybar-openrouter-code/internal/format"
+	"github.com/mttgermano/waybar-openrouter-code/pkg/waybar"
 )
 
 const (
@@ -28,7 +28,7 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("waybar-claude-code %s\n", version)
+		fmt.Printf("waybar-openrouter-code %s\n", version)
 		return
 	}
 
