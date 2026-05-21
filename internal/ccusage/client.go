@@ -53,6 +53,7 @@ type Daily struct {
 	CacheCreationTokens int      `json:"cacheCreationTokens"`
 	CacheReadTokens     int      `json:"cacheReadTokens"`
 	Models              []string `json:"modelsUsed"`
+	Period				string	 `json:"period"`
 }
 
 type DailyData struct {
@@ -60,6 +61,7 @@ type DailyData struct {
 	InputTokens  int
 	OutputTokens int
 	LastModel    string
+	Period		 string
 }
 
 type Data struct {
@@ -117,11 +119,21 @@ func getDaily(ctx context.Context) (*DailyData, error) {
 		return nil, fmt.Errorf("no active usage daily found in ccusage response")
 	}
 
-	daily := response.Daily[0]
+	// Pick the most recent day (last element, as the array is sorted chronologically)
+	daily := response.Daily[len(response.Daily)-1]
 
 	lastModel := ""
 	if len(daily.Models) > 0 {
 		lastModel = daily.Models[len(daily.Models)-1]
+	}
+
+	// If the last entry wasn't today,
+	if daily.Period != time.Now().Format("2006-01-02") {
+		daily.TotalTokens = 0
+ 		daily.InputTokens = 0
+		daily.CacheCreationTokens = 0
+		daily.CacheReadTokens = 0
+ 		daily.OutputTokens = 0
 	}
 
 	return &DailyData{
@@ -142,7 +154,7 @@ func countEntries(blocks BlocksResponse) int {
 			continue
 		}
 
-		if now.Sub(t) <= 24*time.Hour && now.After(t) {
+		if (now.Sub(t) <= 24*time.Hour && now.After(t)) || b.IsActive {
 			sum += b.Entries
 		}
 	}
@@ -173,7 +185,26 @@ func getBlocks(ctx context.Context) (*BlocksData, error) {
 			Models:      []string{},
 		}
 	} else {
-		block = response.Blocks[0]
+		// Prefer the active block if present; otherwise use the most recent block.
+		foundActive := false
+		for i := len(response.Blocks) - 1; i >= 0; i-- {
+			if response.Blocks[i].IsActive {
+				block = response.Blocks[i]
+				foundActive = true
+				break
+			}
+		}
+		if !foundActive {
+			block = response.Blocks[len(response.Blocks)-1]
+		}
+		if block.EndTime[:10] != time.Now().Format("2006-01-02") {
+			block.TotalTokens = 0
+			block.TokenCounts.InputTokens = 0
+			block.TokenCounts.CacheCreationInputTokens = 0
+			block.TokenCounts.CacheReadInputTokens = 0
+			block.TokenCounts.OutputTokens = 0
+		}
+
 	}
 
 	lastModel := ""
