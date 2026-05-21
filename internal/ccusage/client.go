@@ -101,11 +101,11 @@ func GetData(ctx context.Context) (*Data, error) {
 }
 
 func getDaily(ctx context.Context) (*DailyData, error) {
-	cmd := exec.CommandContext(ctx, "npx", "ccusage@latest", "daily", "--active", "--json", "--offline")
+	cmd := exec.CommandContext(ctx, "npx", "ccusage@latest", "daily", "--json", "--offline")
 
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("execute ccusage (npx ccusage@latest daily --active --json --offline): %w", err)
+		return nil, fmt.Errorf("execute ccusage (npx ccusage@latest daily --json --offline): %w", err)
 	}
 
 	var response DailyResponse
